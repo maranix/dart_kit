@@ -30,30 +30,35 @@ to help write safer, more expressive, and predictable Dart code.
   - [x] filter
   - [x] inspect
   - [x] contains
+  - [x] from
+  - [x] fromAsync
+  - [x] orElse
 
 - [ ] Result
-  - [ ] Ok
-  - [ ] Err
-  - [ ] map
-  - [ ] mapErr
-  - [ ] flatMap
-  - [ ] fold
-  - [ ] getOrElse
-  - [ ] unwrap / unwrapErr
-  - [ ] isOk / isErr
-  - [ ] when
+  - [x] Ok
+  - [x] Err
+  - [x] map
+  - [x] mapErr
+  - [x] flatMap
+  - [x] fold
+  - [x] getOrElse
+  - [x] unwrap / unwrapErr
+  - [x] isOk / isErr
+  - [x] from
+  - [x] fromAsync
+  - [x] orElse
   - [ ] toEither
 
----
-
-## 🧩 Planned Core Types
-
-### Sum Type
+### TBD: Need to complete this and add more appropriate methods
 - [ ] Either<L, R>
   - [ ] Left
   - [ ] Right
   - [ ] fold
   - [ ] swap
+
+---
+
+## 🧩 Planned Core Types
 
 ### Functional Types
 - [ ] Unit
@@ -105,9 +110,10 @@ to help write safer, more expressive, and predictable Dart code.
   - Core extensions
 - Result
   - Core extensions
+- Either
+  - Core extensions
 
 ### v0.2.x
-- Either
 - Try
 - Unit
 - Function helpers
