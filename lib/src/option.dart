@@ -1,0 +1,296 @@
+import 'package:equatable/equatable.dart';
+import 'package:meta/meta.dart' show immutable;
+
+/// {@template option}
+/// Represents an optional value of type [T].
+///
+/// An `Option<T>` can be either:
+/// - `Some(value)`, representing the presence of a value.
+/// - `None()`, representing the absence of a value.
+///
+/// Use `Option<T>` to avoid nullable types and make the presence or absence of a value explicit.
+/// This is similar to `Option`/`Maybe` in functional languages like Rust or Haskell.
+///
+/// Example:
+/// ```dart
+/// Option<int> a = .some(10);
+/// Option<int> b = .none();
+///
+/// print(a.isSome); // true
+/// print(b.isNone); // true
+/// ```
+/// {@endtemplate}
+@immutable
+sealed class Option<T extends Object> extends Equatable {
+  /// {@macro option}
+  const Option();
+
+  /// {@template option_some}
+  /// Creates an `Option` containing a value of type [T].
+  ///
+  /// This is equivalent to constructing a `Some(value)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// Option<int> x = .some(5); // Some(5)
+  /// print(x.isSome); // true
+  /// ```
+  /// {@endtemplate}
+  const factory Option.some(T value) = Some;
+
+  /// {@template option_none}
+  /// Creates an `Option` without a value.
+  ///
+  /// This is equivalent to constructing a `None()`.
+  ///
+  /// Example:
+  /// ```dart
+  /// Option<int> y = .none(); // None
+  /// print(y.isNone); // true
+  /// ```
+  /// {@endtemplate}
+  const factory Option.none() = None;
+
+  /// Returns `true` if this `Option` contains a value (`Some`), `false` otherwise.
+  ///
+  /// Example:
+  /// ```dart
+  /// final x = .some(42);
+  /// print(x.isSome); // true
+  ///
+  /// final y = .none<int>();
+  /// print(y.isSome); // false
+  /// ```
+  bool get isSome => this is Some;
+
+  /// Returns `true` if this `Option` does not contain a value (`None`), `false` otherwise.
+  ///
+  /// Example:
+  /// ```dart
+  /// final x = .none<int>();
+  /// print(x.isNone); // true
+  ///
+  /// final y = .some(42);
+  /// print(y.isNone); // false
+  /// ```
+  bool get isNone => this is None;
+
+  /// Returns the value inside `Some`, or evaluates and returns the result of [orElse] if `None`.
+  ///
+  /// Example:
+  /// ```dart
+  /// Option<int> a = Some(5);
+  /// Option<int> b = None();
+  /// a.getOrElse(() => 0); // returns 5
+  /// b.getOrElse(() => 0); // returns 0
+  /// ```
+  T getOrElse(T Function() orElse) => switch (this) {
+    Some(:final value) => value,
+    None() => orElse(),
+  };
+
+  /// Returns the value inside `Some`.
+  ///
+  /// Throws [OptionIsNoneException] if the Option is `None`.
+  ///
+  /// Use only when you are certain the Option contains a value.
+  T unwrap() => switch (this) {
+    Some(:final value) => value,
+    None() => throw const OptionIsNoneException(),
+  };
+
+  /// Returns the value inside `Some`.
+  ///
+  /// Throws [OptionIsNoneException] with [message] if the Option is `None`.
+  ///
+  /// Use only when you are certain the Option contains a value.
+  T expect(String message) => switch (this) {
+    Some(:final value) => value,
+    None() => throw OptionIsNoneException(message),
+  };
+
+  /// Transforms the value inside `Some` using [f] and returns a new Option.
+  ///
+  /// - If `this` is `Some`, applies `f` to the contained value and returns `Some(f(value))`.
+  /// - If `this` is `None`, returns `None<R>`.
+  ///
+  /// Example:
+  /// ```dart
+  /// Option<int> x = .some(2);
+  /// Option<String> y = x.map((v) => 'Value: $v'); // Some('Value: 2')
+  /// Option<int> z = .none<int>();
+  /// Option<String> w = z.map((v) => 'Value: $v'); // None<String>
+  /// ```
+  Option<R> map<R extends Object>(R Function(T) f) => switch (this) {
+    Some(:final value) => .some(f(value)),
+    None() => .none(),
+  };
+
+  /// Applies [f] to the value inside `Some`, returning the resulting Option.
+  ///
+  /// - If `this` is `Some(value)`, returns `f(value)`.
+  /// - If `this` is `None`, returns `None<R>`.
+  ///
+  /// Example:
+  /// ```dart
+  /// Option<String> parse(String s) => s.isNotEmpty ? .some(s) : .none();
+  /// Option<String> result = .some('hello').flatMap(parse); // Some('hello')
+  /// Option<String> result2 = .none<String>().flatMap(parse); // None<String>
+  /// ```
+  Option<R> flatMap<R extends Object>(Option<R> Function(T) f) =>
+      switch (this) {
+        Some(:final value) => f(value),
+        None() => .none(),
+      };
+
+  /// Reduces the Option to a single value of type [R].
+  ///
+  /// - If `this` is `Some(value)`, returns `onSome(value)`.
+  /// - If `this` is `None`, returns `onNone()`.
+  ///
+  /// Example:
+  /// ```dart
+  /// Option<int> x = .some(5);
+  /// int doubled = x.fold(onSome: (v) => v * 2, onNone: () => 0); // 10
+  /// Option<int> y = .none<int>();
+  /// int defaultVal = y.fold(onSome: (v) => v * 2, onNone: () => 0); // 0
+  /// ```
+  R fold<R extends Object>({
+    required R Function(T) onSome,
+    required R Function() onNone,
+  }) => switch (this) {
+    Some(:final value) => onSome(value),
+    None() => onNone(),
+  };
+
+  /// Executes [f] on the value inside `Some`, if present, and returns the original `Option`.
+  ///
+  /// - If `this` is `Some(value)`, calls `f(value)` and returns `this`.
+  /// - If `this` is `None`, does nothing and returns `this`.
+  ///
+  /// Useful for side-effects like logging, debugging, or chaining operations.
+  ///
+  /// Example:
+  /// ```dart
+  /// Option<int> x = .some(42);
+  /// x.inspect((v) => print('Value is $v')); // prints: Value is 42
+  /// Option<int> y = .none<int>();
+  /// y.inspect((v) => print('Will not print')); // does nothing
+  /// ```
+  Option<T> inspect(void Function(T value) f) => switch (this) {
+    Some(:final value) => () {
+      f(value);
+      return this;
+    }(),
+    None() => this,
+  };
+
+  /// Returns `Some(value)` if the value satisfies [predicate], otherwise returns `None`.
+  ///
+  /// - If `this` is `Some(value)` and `predicate(value)` returns `true`, returns `this`.
+  /// - If `this` is `Some(value)` and `predicate(value)` returns `false`, returns `None`.
+  /// - If `this` is `None`, returns `None`.
+  ///
+  /// Example:
+  /// ```dart
+  /// Option<int> x = .some(5);
+  /// x.filter((v) => v > 3); // Some(5)
+  /// x.filter((v) => v > 10); // None
+  /// Option<int> y = .none<int>();
+  /// y.filter((v) => v > 3); // None
+  /// ```
+  Option<T> filter(bool Function(T) predicate) => switch (this) {
+    Some(:final value) when predicate(value) => this,
+    _ => .none(),
+  };
+
+  bool contains(T val) => switch (this) {
+    Some(:final value) => value == val,
+    None() => false,
+  };
+
+  @override
+  bool get stringify => true;
+
+  @override
+  List<Object> get props => switch (this) {
+    Some<T>(:final value) => [value],
+    None() => [],
+  };
+}
+
+/// {@template some_class}
+/// Represents an `Option` containing a value of type [T].
+///
+/// Typically constructed via `Option.some(value)`.
+///
+/// Example:
+/// ```dart
+/// final someValue = Some(42);
+/// print(someValue.isSome); // true
+/// print(someValue.unwrap()); // 42
+/// ```
+/// {@endtemplate}
+@immutable
+final class Some<T extends Object> extends Option<T> {
+  /// {@macro some_class}
+  const Some(this.value);
+
+  /// The value contained in this `Some`.
+  final T value;
+}
+
+/// {@template none_class}
+/// Represents an `Option` with no value.
+///
+/// Typically constructed via `Option.none()`.
+///
+/// Example:
+/// ```dart
+/// final noneValue = None<int>();
+/// print(noneValue.isNone); // true
+/// ```
+/// {@endtemplate}
+@immutable
+final class None<T extends Object> extends Option<T> {
+  /// {@macro none_class}
+  const None();
+
+  @override
+  bool operator ==(Object other) => other is None; // ignore generics
+
+  @override
+  int get hashCode => 0;
+}
+
+/// {@template option_is_none_exception}
+/// Exception thrown when attempting to unwrap or access a value
+/// from a `None` option.
+///
+/// Use `unwrap()` or `expect()` only when you are certain the `Option` contains a value.
+///
+/// Example:
+/// ```dart
+/// final noneValue = None<int>();
+/// try {
+///   noneValue.unwrap(); // throws OptionIsNoneException
+/// } catch (e) {
+///   print(e); // prints error message
+/// }
+/// ```
+/// {@endtemplate}
+@immutable
+final class OptionIsNoneException implements Exception {
+  /// {@macro option_is_none_exception}
+  ///
+  /// Optionally include a [message] describing the exception.
+  const OptionIsNoneException([this.message]);
+
+  /// Optional message describing the exception.
+  final String? message;
+
+  @override
+  String toString() => message == null
+      ? '$runtimeType: Attempted to unwrap a None value'
+      : '$runtimeType: $message';
+}
