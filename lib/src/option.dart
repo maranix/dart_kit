@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:meta/meta.dart' show immutable;
+import 'package:meta/meta.dart' show immutable, useResult;
 
 /// {@template option}
 /// Represents an optional value of type [T].
@@ -50,6 +50,69 @@ sealed class Option<T extends Object> extends Equatable {
   /// ```
   /// {@endtemplate}
   const factory Option.none() = None;
+
+  /// Creates a new `Option` from a synchronous function that may throw an error.
+  ///
+  /// If the function executes successfully, a `Some` containing the result is returned.
+  /// If the function throws an error (or an exception), a `None` is returned.
+  ///
+  /// This method is useful when you want to wrap a potentially failing or null-returning function in an `Option` and avoid dealing with `null` or exceptions directly.
+  ///
+  /// **Note:** If the function throws an `Error` (as opposed to an `Exception`), it will be **re-thrown**.
+  ///
+  /// This is because `Error` in Dart is typically used for conditions that represent **bugs or critical issues** in the program, rather than recoverable runtime failures (like IO or network errors).
+  /// Therefore, `Error` is rethrown, so that it can be properly handled elsewhere, rather than being suppressed or returned as part of normal error handling.
+  ///
+  /// Example:
+  /// ```dart
+  /// final option = Option.from(() => 42); // returns Some(42)
+  /// print(option); // Some(42)
+  ///
+  /// final noneOption = Option.from(() => throw Exception("Oops")); // returns None
+  /// print(noneOption); // None
+  /// ```
+  static Option<R> from<R extends Object>(R Function() f) {
+    try {
+      return .some(f());
+    } catch (err) {
+      if (err is Error) rethrow;
+      return .none();
+    }
+  }
+
+  /// Creates a new `Option` from an asynchronous function that may throw an error.
+  ///
+  /// If the asynchronous function resolves successfully, a `Some` containing the result is returned.
+  /// If the function throws an error (or exception), a `None` is returned.
+  ///
+  /// This method is useful for handling asynchronous operations that may either succeed with a value or fail,
+  /// without needing to deal with `null` or uncaught exceptions directly.
+  ///
+  /// Note: Unlike synchronous `Option.from`, this method must be awaited as it handles `Future` values.
+  ///
+  /// If the asynchronous function throws an `Error` (as opposed to an `Exception`), it will be **re-thrown**.
+  ///
+  /// This is because `Error` in Dart is typically used for conditions that represent **bugs or critical issues** in the program, rather than recoverable runtime failures (like IO or network errors).
+  /// Therefore, `Error` is rethrown, so that it can be properly handled elsewhere, rather than being suppressed or returned as part of normal error handling.
+  ///
+  /// Example:
+  /// ```dart
+  /// final option = await Option.fromAsync(() async => await fetchData()); // returns Some(data)
+  /// print(option); // Some(data)
+  ///
+  /// final noneOption = await Option.fromAsync(() async => throw Exception("Error")); // returns None
+  /// print(noneOption); // None
+  /// ```
+  static Future<Option<R>> fromAsync<R extends Object>(
+    Future<R> Function() f,
+  ) async {
+    try {
+      return .some(await f());
+    } catch (err) {
+      if (err is Error) rethrow;
+      return .none();
+    }
+  }
 
   /// Returns `true` if this `Option` contains a value (`Some`), `false` otherwise.
   ///
@@ -121,6 +184,7 @@ sealed class Option<T extends Object> extends Equatable {
   /// Option<int> z = .none<int>();
   /// Option<String> w = z.map((v) => 'Value: $v'); // None<String>
   /// ```
+  @useResult
   Option<R> map<R extends Object>(R Function(T) f) => switch (this) {
     Some(:final value) => .some(f(value)),
     None() => .none(),
@@ -137,6 +201,7 @@ sealed class Option<T extends Object> extends Equatable {
   /// Option<String> result = .some('hello').flatMap(parse); // Some('hello')
   /// Option<String> result2 = .none<String>().flatMap(parse); // None<String>
   /// ```
+  @useResult
   Option<R> flatMap<R extends Object>(Option<R> Function(T) f) =>
       switch (this) {
         Some(:final value) => f(value),
@@ -155,12 +220,40 @@ sealed class Option<T extends Object> extends Equatable {
   /// Option<int> y = .none<int>();
   /// int defaultVal = y.fold(onSome: (v) => v * 2, onNone: () => 0); // 0
   /// ```
+  @useResult
   R fold<R extends Object>({
     required R Function(T) onSome,
     required R Function() onNone,
   }) => switch (this) {
     Some(:final value) => onSome(value),
     None() => onNone(),
+  };
+
+  /// Returns `Some(value)` if the value satisfies [predicate], otherwise returns `None`.
+  ///
+  /// - If `this` is `Some(value)` and `predicate(value)` returns `true`, returns `this`.
+  /// - If `this` is `Some(value)` and `predicate(value)` returns `false`, returns `None`.
+  /// - If `this` is `None`, returns `None`.
+  ///
+  /// Example:
+  /// ```dart
+  /// Option<int> x = .some(5);
+  /// x.filter((v) => v > 3); // Some(5)
+  /// x.filter((v) => v > 10); // None
+  /// Option<int> y = .none<int>();
+  /// y.filter((v) => v > 3); // None
+  /// ```
+  @useResult
+  Option<T> filter(bool Function(T) predicate) => switch (this) {
+    Some(:final value) when predicate(value) => this,
+    _ => .none(),
+  };
+
+  /// Returns `this` if `Some`, otherwise evaluates and returns the result of [f] if `None`.
+  @useResult
+  Option<T> orElse(Option<T> Function() f) => switch (this) {
+    Some() => this,
+    None() => f(),
   };
 
   /// Executes [f] on the value inside `Some`, if present, and returns the original `Option`.
@@ -185,25 +278,13 @@ sealed class Option<T extends Object> extends Equatable {
     None() => this,
   };
 
-  /// Returns `Some(value)` if the value satisfies [predicate], otherwise returns `None`.
-  ///
-  /// - If `this` is `Some(value)` and `predicate(value)` returns `true`, returns `this`.
-  /// - If `this` is `Some(value)` and `predicate(value)` returns `false`, returns `None`.
-  /// - If `this` is `None`, returns `None`.
+  /// Returns `true` if `Option` contains [val].
   ///
   /// Example:
   /// ```dart
-  /// Option<int> x = .some(5);
-  /// x.filter((v) => v > 3); // Some(5)
-  /// x.filter((v) => v > 10); // None
-  /// Option<int> y = .none<int>();
-  /// y.filter((v) => v > 3); // None
+  /// Option<int> x = .some(42);
+  /// x.contains(42); // true
   /// ```
-  Option<T> filter(bool Function(T) predicate) => switch (this) {
-    Some(:final value) when predicate(value) => this,
-    _ => .none(),
-  };
-
   bool contains(T val) => switch (this) {
     Some(:final value) => value == val,
     None() => false,
