@@ -108,18 +108,13 @@ void main() {
         expect(output.unwrap(), 99);
       });
 
-      test('expect throws ResultError with message', () {
+      test('expect throws StateError with message', () {
         final result = Result.err('err');
-        expect(
-          () => result.expect('expected failure'),
-          throwsA(
-            isA<ResultError>().having(
-              (e) => e.message,
-              'message',
-              'expected failure',
-            ),
-          ),
-        );
+        try {
+          result.expect('expected failure');
+        } on StateError catch (e) {
+          expect(e.message.startsWith("Result.err: expected failure"), isTrue);
+        }
       });
     });
 

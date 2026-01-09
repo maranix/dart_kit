@@ -33,8 +33,9 @@ to help write safer, more expressive, and predictable Dart code.
   - [x] from
   - [x] fromAsync
   - [x] orElse
+  - [ ] toResult
 
-- [ ] Result
+- [x] Result
   - [x] Ok
   - [x] Err
   - [x] map
@@ -48,14 +49,40 @@ to help write safer, more expressive, and predictable Dart code.
   - [x] fromAsync
   - [x] orElse
   - [ ] toEither
+  - [ ] toOption
 
-### TBD: Need to complete this and add more appropriate methods
-- [ ] Either<L, R>
+### Either<L, R>
+- [ ] Either
   - [ ] Left
   - [ ] Right
-  - [ ] fold
+  - [ ] isLeft / isRight
   - [ ] swap
+  - [ ] fold
+  - [ ] getOrElse (for Right)
+  - [ ] getOrElseLeft (for Left)
+  @override
+  bool get stringify => true;
 
+  @override
+  List<Object> get props => switch (this) {
+    Some<T>(:final value) => [value],
+    None() => [],
+  };
+  - [ ] map (map Right value)
+  - [ ] mapLeft (map Left value)
+  - [ ] flatMap (chain Right value)
+  - [ ] flatMapLeft (chain Left value)
+  - [ ] contains (check Right)
+  - [ ] containsLeft (check Left)
+  - [ ] inspect (for debugging Right)
+  - [ ] inspectLeft (for debugging Left)
+  - [ ] from (construct from nullable or callback)
+  - [ ] fromAsync (construct from Future)
+  - [ ] orElse (default Right value) 
+  - [ ] orElseLeft (default Left value)
+  - [ ] toResult (convert Either<L, R> → Result<R, L>)
+  - [ ] toOption (Right → Some, Left → None)
+  - [ ] toOptionLeft (Left → Some, Right → None)
 ---
 
 ## 🧩 Planned Core Types

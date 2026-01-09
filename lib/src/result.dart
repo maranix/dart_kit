@@ -94,16 +94,13 @@ sealed class Result<T> extends Equatable {
   }
 
   /// Returns `true` if this `Result` is `Ok`.
-  bool get isOk => this is Ok;
+  bool get isOk;
 
   /// Returns `true` if this `Result` is `Err`.
-  bool get isErr => this is Err;
+  bool get isErr;
 
   /// Returns the value inside `Ok`, or evaluates and returns [orElse] if `Err`.
-  T getOrElse(T Function() orElse) => switch (this) {
-    Ok(:final value) => value,
-    Err() => orElse(),
-  };
+  T getOrElse(T Function() orElse);
 
   /// Returns the value inside `Ok`, or throws the original error (with stack trace) if `Err`.
   ///
@@ -115,34 +112,20 @@ sealed class Result<T> extends Equatable {
   /// final failure = .err(Exception("Oops"));
   /// failure.unwrap(); // throws Exception("Oops")
   /// ```
-  T unwrap() => switch (this) {
-    Ok(:final value) => value,
-    Err(:final error, :final stackTrace) => Error.throwWithStackTrace(
-      error,
-      stackTrace ?? StackTrace.current,
-    ),
-  };
+  @useResult
+  T unwrap();
 
   /// Maps the error inside `Err` using [f], leaves `Ok` unchanged.
   @useResult
-  Result<T> mapErr(Object Function(Object) f) => switch (this) {
-    Ok(:final value) => .ok(value),
-    Err(:final error, :final stackTrace) => .err(f(error), stackTrace),
-  };
+  Result<T> mapErr(Object Function(Object) f);
 
   /// Maps the value inside `Ok` using [f], leaves `Err` unchanged.
   @useResult
-  Result<R> map<R>(R Function(T) f) => switch (this) {
-    Ok(:final value) => .ok(f(value)),
-    Err(:final error, :final stackTrace) => .err(error, stackTrace),
-  };
+  Result<R> map<R>(R Function(T) f);
 
   /// Flat-maps the value inside `Ok` using [f], leaves `Err` unchanged.
   @useResult
-  Result<R> flatMap<R>(Result<R> Function(T) f) => switch (this) {
-    Ok(:final value) => f(value),
-    Err(:final error, :final stackTrace) => .err(error, stackTrace),
-  };
+  Result<R> flatMap<R>(Result<R> Function(T) f);
 
   /// Fold the `Result` into a single value.
   ///
@@ -151,33 +134,14 @@ sealed class Result<T> extends Equatable {
   R fold<R>({
     required R Function(T) onOk,
     required R Function(Object error, StackTrace? stackTrace) onErr,
-  }) => switch (this) {
-    Ok(:final value) => onOk(value),
-    Err(:final error, :final stackTrace) => onErr(error, stackTrace),
-  };
+  });
 
   /// Returns `this` if `Ok`, otherwise evaluates and returns the result of [f] if `Err`.
   @useResult
-  Result<T> orElse(Result<T> Function() f) => switch (this) {
-    Ok() => this,
-    Err() => f(),
-  };
+  Result<T> orElse(Result<T> Function() f);
 
-  /// Returns the value inside `Ok`, or throws a `ResultError` with a custom [message] if `Err`.
-  T expect(String message) => switch (this) {
-    Ok(:final value) => value,
-    Err(:final error, :final stackTrace) => throw ResultError(
-      message,
-      source: error,
-      stackTrace: stackTrace,
-    ),
-  };
-
-  @override
-  List<Object?> get props => switch (this) {
-    Ok(:final value) => [value],
-    Err(:final error) => [error],
-  };
+  /// Returns the value inside `Ok`, or throws a [StateError] with [message] if `Err`.
+  T expect(String message);
 }
 
 /// {@template ok}
@@ -190,7 +154,43 @@ final class Ok<T> extends Result<T> {
   final T value;
 
   @override
+  bool get isOk => true;
+
+  @override
+  bool get isErr => false;
+
+  @override
+  T unwrap() => value;
+
+  @override
+  T expect(String message) => value;
+
+  @override
+  Result<R> flatMap<R>(Result<R> Function(T) f) => f(value);
+
+  @override
+  R fold<R>({
+    required R Function(T) onOk,
+    required R Function(Object error, StackTrace? stackTrace) onErr,
+  }) => onOk(value);
+
+  @override
+  T getOrElse(T Function() orElse) => value;
+
+  @override
+  Result<R> map<R>(R Function(T) f) => .ok(f(value));
+
+  @override
+  Result<T> mapErr(Object Function(Object) f) => this;
+
+  @override
+  Result<T> orElse(Result<T> Function() f) => this;
+
+  @override
   bool get stringify => true;
+
+  @override
+  List<Object?> get props => [value];
 }
 
 /// {@template err}
@@ -201,35 +201,56 @@ final class Err<T> extends Result<T> {
   const Err(this.error, [this.stackTrace]);
 
   final Object error;
+
   final StackTrace? stackTrace;
+
+  @override
+  bool get isOk => false;
+
+  @override
+  bool get isErr => true;
+
+  @override
+  T unwrap() =>
+      Error.throwWithStackTrace(error, stackTrace ?? StackTrace.current);
+
+  @override
+  T expect(String message) {
+    final buffer = StringBuffer("Result.err: $message");
+
+    buffer.writeln("\nSource: ${Error.safeToString(error)}");
+    if (stackTrace != null) buffer.writeln("\nStackTrace: $stackTrace");
+
+    throw StateError(buffer.toString());
+  }
+
+  @override
+  Result<R> flatMap<R>(Result<R> Function(T) f) => .err(error, stackTrace);
+
+  @override
+  R fold<R>({
+    required R Function(T) onOk,
+    required R Function(Object error, StackTrace? stackTrace) onErr,
+  }) => onErr(error, stackTrace);
+
+  @override
+  T getOrElse(T Function() orElse) => orElse();
+
+  @override
+  Result<R> map<R>(R Function(T) f) => .err(error, stackTrace);
+
+  @override
+  Result<T> mapErr(Object Function(Object) f) => .err(f(error), stackTrace);
+
+  @override
+  Result<T> orElse(Result<T> Function() f) => f();
+
+  @override
+  List<Object> get props => [error];
 }
 
 /// Extension on `Future` to convert it to a `Result`.
 extension AsyncResultX<T> on Future<T> {
   /// Converts a `Future<T>` to `Future<Result<T>>`.
   Future<Result<T>> toResult() => Result.fromAsync(() => this);
-}
-
-/// {@template result_error}
-/// Error thrown when `Result.expect` fails.
-/// Contains the original error as [source] and optional [stackTrace].
-/// {@endtemplate}
-final class ResultError extends Error {
-  ResultError(this.message, {this.source, this.stackTrace});
-
-  final String message;
-  final Object? source;
-
-  @override
-  final StackTrace? stackTrace;
-
-  @override
-  String toString() {
-    final buffer = StringBuffer("ResultError: $message");
-
-    if (source != null) buffer.writeln("\nSource: $source");
-    if (stackTrace != null) buffer.writeln("\nStackTrace: $stackTrace");
-
-    return buffer.toString();
-  }
 }
