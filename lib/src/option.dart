@@ -124,7 +124,7 @@ sealed class Option<T extends Object> extends Equatable {
   /// final y = .none<int>();
   /// print(y.isSome); // false
   /// ```
-  bool get isSome => this is Some;
+  bool get isSome;
 
   /// Returns `true` if this `Option` does not contain a value (`None`), `false` otherwise.
   ///
@@ -136,7 +136,7 @@ sealed class Option<T extends Object> extends Equatable {
   /// final y = .some(42);
   /// print(y.isNone); // false
   /// ```
-  bool get isNone => this is None;
+  bool get isNone;
 
   /// Returns the value inside `Some`, or evaluates and returns the result of [orElse] if `None`.
   ///
@@ -147,30 +147,21 @@ sealed class Option<T extends Object> extends Equatable {
   /// a.getOrElse(() => 0); // returns 5
   /// b.getOrElse(() => 0); // returns 0
   /// ```
-  T getOrElse(T Function() orElse) => switch (this) {
-    Some(:final value) => value,
-    None() => orElse(),
-  };
+  T getOrElse(T Function() orElse);
 
   /// Returns the value inside `Some`.
   ///
   /// Throws [OptionIsNoneException] if the Option is `None`.
   ///
   /// Use only when you are certain the Option contains a value.
-  T unwrap() => switch (this) {
-    Some(:final value) => value,
-    None() => throw const OptionIsNoneException(),
-  };
+  T unwrap();
 
   /// Returns the value inside `Some`.
   ///
   /// Throws [OptionIsNoneException] with [message] if the Option is `None`.
   ///
   /// Use only when you are certain the Option contains a value.
-  T expect(String message) => switch (this) {
-    Some(:final value) => value,
-    None() => throw OptionIsNoneException(message),
-  };
+  T expect(String message);
 
   /// Transforms the value inside `Some` using [f] and returns a new Option.
   ///
@@ -185,10 +176,7 @@ sealed class Option<T extends Object> extends Equatable {
   /// Option<String> w = z.map((v) => 'Value: $v'); // None<String>
   /// ```
   @useResult
-  Option<R> map<R extends Object>(R Function(T) f) => switch (this) {
-    Some(:final value) => .some(f(value)),
-    None() => .none(),
-  };
+  Option<R> map<R extends Object>(R Function(T) f);
 
   /// Applies [f] to the value inside `Some`, returning the resulting Option.
   ///
@@ -202,11 +190,7 @@ sealed class Option<T extends Object> extends Equatable {
   /// Option<String> result2 = .none<String>().flatMap(parse); // None<String>
   /// ```
   @useResult
-  Option<R> flatMap<R extends Object>(Option<R> Function(T) f) =>
-      switch (this) {
-        Some(:final value) => f(value),
-        None() => .none(),
-      };
+  Option<R> flatMap<R extends Object>(Option<R> Function(T) f);
 
   /// Reduces the Option to a single value of type [R].
   ///
@@ -224,10 +208,7 @@ sealed class Option<T extends Object> extends Equatable {
   R fold<R extends Object>({
     required R Function(T) onSome,
     required R Function() onNone,
-  }) => switch (this) {
-    Some(:final value) => onSome(value),
-    None() => onNone(),
-  };
+  });
 
   /// Returns `Some(value)` if the value satisfies [predicate], otherwise returns `None`.
   ///
@@ -244,17 +225,11 @@ sealed class Option<T extends Object> extends Equatable {
   /// y.filter((v) => v > 3); // None
   /// ```
   @useResult
-  Option<T> filter(bool Function(T) predicate) => switch (this) {
-    Some(:final value) when predicate(value) => this,
-    _ => .none(),
-  };
+  Option<T> filter(bool Function(T) predicate);
 
   /// Returns `this` if `Some`, otherwise evaluates and returns the result of [f] if `None`.
   @useResult
-  Option<T> orElse(Option<T> Function() f) => switch (this) {
-    Some() => this,
-    None() => f(),
-  };
+  Option<T> orElse(Option<T> Function() f);
 
   /// Executes [f] on the value inside `Some`, if present, and returns the original `Option`.
   ///
@@ -270,13 +245,7 @@ sealed class Option<T extends Object> extends Equatable {
   /// Option<int> y = .none<int>();
   /// y.inspect((v) => print('Will not print')); // does nothing
   /// ```
-  Option<T> inspect(void Function(T value) f) => switch (this) {
-    Some(:final value) => () {
-      f(value);
-      return this;
-    }(),
-    None() => this,
-  };
+  Option<T> inspect(void Function(T value) f);
 
   /// Returns `true` if `Option` contains [val].
   ///
@@ -285,19 +254,7 @@ sealed class Option<T extends Object> extends Equatable {
   /// Option<int> x = .some(42);
   /// x.contains(42); // true
   /// ```
-  bool contains(T val) => switch (this) {
-    Some(:final value) => value == val,
-    None() => false,
-  };
-
-  @override
-  bool get stringify => true;
-
-  @override
-  List<Object> get props => switch (this) {
-    Some<T>(:final value) => [value],
-    None() => [],
-  };
+  bool contains(T val);
 }
 
 /// {@template some_class}
@@ -319,6 +276,57 @@ final class Some<T extends Object> extends Option<T> {
 
   /// The value contained in this `Some`.
   final T value;
+
+  @override
+  bool get isSome => true;
+
+  @override
+  bool get isNone => false;
+
+  @override
+  bool contains(T val) => val == value;
+
+  @override
+  T unwrap() => value;
+
+  @override
+  T expect(String message) => value;
+
+  @override
+  Option<T> filter(bool Function(T) predicate) {
+    if (predicate(value)) return this;
+    return .none();
+  }
+
+  @override
+  Option<R> flatMap<R extends Object>(Option<R> Function(T) f) => f(value);
+
+  @override
+  R fold<R extends Object>({
+    required R Function(T) onSome,
+    required R Function() onNone,
+  }) => onSome(value);
+
+  @override
+  T getOrElse(T Function() orElse) => value;
+
+  @override
+  Option<T> inspect(void Function(T) f) {
+    f(value);
+    return this;
+  }
+
+  @override
+  Option<R> map<R extends Object>(R Function(T) f) => .some(f(value));
+
+  @override
+  Option<T> orElse(Option<T> Function() f) => this;
+
+  @override
+  bool get stringify => true;
+
+  @override
+  List<Object> get props => [value];
 }
 
 /// {@template none_class}
@@ -338,10 +346,52 @@ final class None<T extends Object> extends Option<T> {
   const None();
 
   @override
+  bool get isSome => false;
+
+  @override
+  bool get isNone => true;
+
+  @override
+  bool contains(T val) => false;
+
+  @override
+  T unwrap() => throw const OptionIsNoneException();
+
+  @override
+  T expect(String message) => throw OptionIsNoneException(message);
+
+  @override
+  Option<T> filter(bool Function(T) predicate) => .none();
+
+  @override
+  Option<R> flatMap<R extends Object>(Option<R> Function(T) f) => .none();
+
+  @override
+  R fold<R extends Object>({
+    required R Function(T) onSome,
+    required R Function() onNone,
+  }) => onNone();
+
+  @override
+  T getOrElse(T Function() orElse) => orElse();
+
+  @override
+  Option<T> inspect(void Function(T value) f) => .none();
+
+  @override
+  Option<R> map<R extends Object>(R Function(T) f) => .none();
+
+  @override
+  Option<T> orElse(Option<T> Function() f) => f();
+
+  @override
   bool operator ==(Object other) => other is None; // ignore generics
 
   @override
   int get hashCode => 0;
+
+  @override
+  List<Object?> get props => const [];
 }
 
 /// {@template option_is_none_exception}
