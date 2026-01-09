@@ -16,7 +16,7 @@ void main() {
 
       expect(option.isSome, isFalse);
       expect(option.isNone, isTrue);
-      expect(() => option.unwrap(), throwsA(isA<OptionIsNoneException>()));
+      expect(() => option.unwrap(), throwsStateError);
     });
 
     test('Some equality', () {
@@ -49,7 +49,7 @@ void main() {
 
     test('unwrap throws for None', () {
       final Option<int> option = .none();
-      expect(() => option.unwrap(), throwsA(isA<OptionIsNoneException>()));
+      expect(() => option.unwrap(), throwsStateError);
     });
 
     test('expect returns value for Some', () {
@@ -64,7 +64,7 @@ void main() {
         () => option.expect(msg),
         throwsA(
           predicate((e) {
-            return e is OptionIsNoneException && e.message == msg;
+            return e is StateError && e.message == msg;
           }),
         ),
       );

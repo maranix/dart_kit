@@ -151,14 +151,14 @@ sealed class Option<T extends Object> extends Equatable {
 
   /// Returns the value inside `Some`.
   ///
-  /// Throws [OptionIsNoneException] if the Option is `None`.
+  /// Throws [StateError] if the Option is `None`.
   ///
   /// Use only when you are certain the Option contains a value.
   T unwrap();
 
   /// Returns the value inside `Some`.
   ///
-  /// Throws [OptionIsNoneException] with [message] if the Option is `None`.
+  /// Throws [StateError] with [message] if the Option is `None`.
   ///
   /// Use only when you are certain the Option contains a value.
   T expect(String message);
@@ -355,10 +355,10 @@ final class None<T extends Object> extends Option<T> {
   bool contains(T val) => false;
 
   @override
-  T unwrap() => throw const OptionIsNoneException();
+  T unwrap() => throw StateError("Attempted to unwrap `None`");
 
   @override
-  T expect(String message) => throw OptionIsNoneException(message);
+  T expect(String message) => throw StateError(message);
 
   @override
   Option<T> filter(bool Function(T) predicate) => .none();
@@ -392,36 +392,4 @@ final class None<T extends Object> extends Option<T> {
 
   @override
   List<Object?> get props => const [];
-}
-
-/// {@template option_is_none_exception}
-/// Exception thrown when attempting to unwrap or access a value
-/// from a `None` option.
-///
-/// Use `unwrap()` or `expect()` only when you are certain the `Option` contains a value.
-///
-/// Example:
-/// ```dart
-/// final noneValue = None<int>();
-/// try {
-///   noneValue.unwrap(); // throws OptionIsNoneException
-/// } catch (e) {
-///   print(e); // prints error message
-/// }
-/// ```
-/// {@endtemplate}
-@immutable
-final class OptionIsNoneException implements Exception {
-  /// {@macro option_is_none_exception}
-  ///
-  /// Optionally include a [message] describing the exception.
-  const OptionIsNoneException([this.message]);
-
-  /// Optional message describing the exception.
-  final String? message;
-
-  @override
-  String toString() => message == null
-      ? '$runtimeType: Attempted to unwrap a None value'
-      : '$runtimeType: $message';
 }
