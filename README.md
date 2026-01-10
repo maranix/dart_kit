@@ -1,39 +1,86 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+dart_kit
+=========
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages). 
+**dart\_kit** is a lightweight Dart utility package that offers common abstractions and missing features to write safer, more expressive code. It includes well-known functional programming concepts like `Option`, `Result`, and `Either`, and provides utility functions to handle common programming patterns efficiently.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages). 
--->
+Features
+--------
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+*   **Option** - A safer alternative to nullable types, representing either a value or the absence of a value.
+*   **Result** - Encapsulates the result of an operation that can succeed or fail, making error handling explicit.
+*   **Either** - Represents a value of one of two possible types (a success or a failure).
 
-## Features
+Installation
+------------
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+To add `dart_kit` to your project, add the following dependency in your `pubspec.yaml` file:
 
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
-
-## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
-
-```dart
-const like = 'sample';
+```yaml 
+    dependencies:
+      dart_kit: ^1.0.0
 ```
 
-## Additional information
+Usage
+-----
 
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+### Option
+
+`Option` is a type that represents a value that may or may not be present. You can use it to avoid dealing with nullable types in a safer manner.
+
+```dart
+import 'package:dart_kit/dart_kit.dart';
+
+Option someValue = Option.some(42);
+Option noValue = Option.none();
+
+print(someValue.isSome);  // true
+print(noValue.isNone);    // true
+``` 
+
+### Result
+
+`Result` encapsulates the outcome of an operation that can either succeed or fail. It has two variants: `Ok` for success, and `Err` for failure.
+
+```dart
+import 'package:dart_kit/dart_kit.dart';
+
+Result result = Result.ok(42);
+Result failure = Result.err(Exception('Something went wrong'));
+
+print(result.isOk); // true
+print(failure.isErr); // true
+```
+
+### Either
+
+`Either` is used to represent a value that can be of one of two types, typically representing a success (Right) or failure (Left).
+
+```dart
+import 'package:dart_kit/dart_kit.dart';
+
+Either success = Either.right(42);
+Either failure = Either.left('Error occurred');
+
+print(success.isRight);  // true
+print(failure.isLeft);   // true
+```
+
+Contributing
+------------
+
+If you would like to contribute to `dart_kit`, please follow the steps below:
+
+*   Fork this repository on GitHub.
+*   Create a new branch for your changes.
+*   Make your changes and commit them.
+*   Submit a pull request to the main repository.
+
+License
+-------
+
+`dart_kit` is released under the MIT License. See the [License](https://github.com/maranix/dart_kit/tree/main/LICENSE) for more information.
+
+Contact
+-------
+
+For more information or questions, feel free to open an issue on [Issues](https://github.com/maranix/dart_kit/issues).
