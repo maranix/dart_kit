@@ -6,24 +6,24 @@ import 'package:meta/meta.dart';
 /// {@template result}
 /// Represents the result of an operation that can succeed or fail.
 ///
-/// A `Result<T>` can be either:
+/// A `Result<T, E>` can be either:
 /// - `Ok(value)`, representing a successful operation with a value of type [T].
-/// - `Err(error, [stackTrace])`, representing a failed operation with an [error] and optional [StackTrace].
+/// - `Err(error)`, representing a failed operation with an [error] of type [E].
 ///
-/// Use `Result<T>` to make success and failure explicit instead of relying on exceptions.
+/// Use `Result<T, E>` to make success and failure explicit instead of relying on exceptions.
 /// This is similar to `Result`/`Either` types in functional languages like Rust or Haskell.
 ///
 /// Example:
 /// ```dart
-/// Result<int> a = .ok(10);
-/// Result<int> b = .err(Exception("Failed"));
+/// Result<int, String> a = .ok(10);
+/// Result<int, String> b = .err("Failed");
 ///
 /// print(a.isOk); // true
 /// print(b.isErr); // true
 /// ```
 /// {@endtemplate}
 @immutable
-sealed class Result<T> extends Equatable {
+sealed class Result<T, E> extends Equatable {
   /// {@macro result}
   const Result();
 
@@ -34,11 +34,11 @@ sealed class Result<T> extends Equatable {
   ///
   /// Example:
   /// ```dart
-  /// Result<int> x = .ok(5); // Ok(5)
+  /// Result<int, String> x = .ok(5); // Ok(5)
   /// print(x.isOk); // true
   /// ```
   /// {@endtemplate}
-  const factory Result.ok(T value) = Ok;
+  const factory Result.ok(T value) = Ok<T, E>;
 
   /// {@template result_err}
   /// Creates a `Result` representing a failed operation.
@@ -47,51 +47,103 @@ sealed class Result<T> extends Equatable {
   ///
   /// Example:
   /// ```dart
-  /// Result<int> y = .err(Exception("Oops")); // Err
+  /// Result<int, String> y = .err("Oops"); // Err
   /// print(y.isErr); // true
   /// ```
   /// {@endtemplate}
-  const factory Result.err(Object err, [StackTrace? stackTrace]) = Err;
+  const factory Result.err(E err, [StackTrace? stackTrace]) = Err<T, E>;
 
-  /// Creates a `Result` from a synchronous function that may throw.
+  /// Creates a `Result<R, E>` from a synchronous function `f`.
   ///
-  /// If the function executes successfully, returns `Ok` with the value.
-  /// If it throws an `Exception` or other non-`Error`, returns `Err`.
+  /// If `f` returns a value, this returns `Ok(value)`.
   ///
-  /// **Note:** If the function throws an `Error`, it will be **re-thrown**.
+  /// If `f` throws an error, the behavior depends on the `onError` callback:
+  /// - If `onError` is provided, it is called with the caught error,
+  ///   and this returns an `Err` with the result.
+  /// - If `onError` is **not** provided, this attempts to cast the caught
+  ///   error to `E` and returns an `Err` with the casted value.
   ///
-  /// Example:
+  /// **Warning:** If `onError` is not provided and the caught error cannot be
+  /// cast to `E`, a `TypeError` will be thrown.
+  ///
+  /// `Error` objects are always re-thrown, unless explicitly handled in `onError` callback.
+  ///
+  /// Example with `onError`:
   /// ```dart
-  /// final result = Result.from(() => 42); // Ok(42)
-  /// final failure = Result.from(() => throw Exception("Oops")); // Err
+  /// final result = Result.from<int, String>(
+  ///   () => throw Exception('Network error'),
+  ///   onError: (e) => 'Failed to fetch: $e',
+  /// );
+  /// // result is Err('Failed to fetch: Exception: Network error')
   /// ```
-  static Result<R> from<R>(R Function() f) {
+  ///
+  /// Example without `onError` (unsafe):
+  /// ```dart
+  /// final result = Result.from<int, String>(
+  ///   () => throw 'An error occurred',
+  /// );
+  /// // result is Err('An error occurred')
+  /// ```
+  static Result<R, E> from<R, E>(
+    R Function() f, {
+    E Function(Object)? onError,
+  }) {
     try {
       return .ok(f());
     } catch (err, stackTrace) {
+      if (onError != null) {
+        return .err(onError(err), stackTrace);
+      }
+
       if (err is Error) rethrow;
-      return .err(err, stackTrace);
+      return .err(err as E, stackTrace);
     }
   }
 
-  /// Creates a `Result` from an asynchronous function that may throw.
+  /// Creates a `Result<R, E>` from an asynchronous function `f`.
   ///
-  /// If the `Future` resolves successfully, returns `Ok` with the value.
-  /// If it throws an `Exception` or other non-`Error`, returns `Err`.
+  /// If `f` completes with a value, this returns `Ok(value)`.
   ///
-  /// **Note:** If the `Future` throws an `Error`, it will be **re-thrown**.
+  /// If `f` throws an error, the behavior depends on the `onError` callback:
+  /// - If `onError` is provided, it is called with the caught error,
+  ///   and this returns an `Err` with the result.
+  /// - If `onError` is **not** provided, this attempts to cast the caught
+  ///   error to `E` and returns an `Err` with the casted value.
   ///
-  /// Example:
+  /// **Warning:** If `onError` is not provided and the caught error cannot be
+  /// cast to `E`, a `TypeError` will be thrown.
+  ///
+  /// `Error` objects are always re-thrown, unless explicitly handled in `onError` callback.
+  ///
+  /// Example with `onError`:
   /// ```dart
-  /// final result = await Result.fromAsync(() async => await fetchData()); // Ok(data)
-  /// final failure = await Result.fromAsync(() async => throw Exception("Oops")); // Err
+  /// final result = await Result.fromAsync<int, String>(
+  ///   () async => throw Exception('Network error'),
+  ///   onError: (e) => 'Failed to fetch: $e',
+  /// );
+  /// // result is Err('Failed to fetch: Exception: Network error')
   /// ```
-  static Future<Result<R>> fromAsync<R>(Future<R> Function() f) async {
+  ///
+  /// Example without `onError` (unsafe):
+  /// ```dart
+  /// final result = await Result.fromAsync<int, String>(
+  ///   () async => throw 'An error occurred',
+  /// );
+  /// // result is Err('An error occurred')
+  /// ```
+  static Future<Result<R, E>> fromAsync<R, E>(
+    Future<R> Function() f, {
+    E Function(Object)? onError,
+  }) async {
     try {
       return .ok(await f());
     } catch (err, stackTrace) {
+      if (onError != null) {
+        return .err(onError(err), stackTrace);
+      }
+
       if (err is Error) rethrow;
-      return .err(err, stackTrace);
+      return .err(err as E, stackTrace);
     }
   }
 
@@ -102,7 +154,7 @@ sealed class Result<T> extends Equatable {
   bool get isErr;
 
   /// Returns the value inside `Ok`, or evaluates and returns [orElse] if `Err`.
-  T getOrElse(T Function() orElse);
+  T getOrElse(T Function(E error) orElse);
 
   /// Returns the value inside `Ok`, or throws the original error (with stack trace) if `Err`.
   ///
@@ -111,7 +163,7 @@ sealed class Result<T> extends Equatable {
   /// final result = .ok(5);
   /// print(result.unwrap()); // 5
   ///
-  /// final failure = .err(Exception("Oops"));
+  /// final failure = Result<int, Exception>.err(Exception("Oops"));
   /// failure.unwrap(); // throws Exception("Oops")
   /// ```
   @useResult
@@ -119,28 +171,28 @@ sealed class Result<T> extends Equatable {
 
   /// Maps the error inside `Err` using [f], leaves `Ok` unchanged.
   @useResult
-  Result<T> mapErr(Object Function(Object) f);
+  Result<T, F> mapErr<F>(F Function(E error) f);
 
   /// Maps the value inside `Ok` using [f], leaves `Err` unchanged.
   @useResult
-  Result<R> map<R>(R Function(T) f);
+  Result<R, E> map<R>(R Function(T value) f);
 
   /// Flat-maps the value inside `Ok` using [f], leaves `Err` unchanged.
   @useResult
-  Result<R> flatMap<R>(Result<R> Function(T) f);
+  Result<R, E> flatMap<R>(Result<R, E> Function(T value) f);
 
   /// Fold the `Result` into a single value.
   ///
   /// Runs [onOk] if `Ok` or [onErr] if `Err`.
   @useResult
   R fold<R>({
-    required R Function(T) onOk,
-    required R Function(Object error, StackTrace? stackTrace) onErr,
+    required R Function(T value) onOk,
+    required R Function(E error, StackTrace? stackTrace) onErr,
   });
 
   /// Returns `this` if `Ok`, otherwise evaluates and returns the result of [f] if `Err`.
   @useResult
-  Result<T> orElse(Result<T> Function() f);
+  Result<T, E> orElse(Result<T, E> Function(E error, StackTrace? stackTrace) f);
 
   /// Returns the value inside `Ok`, or throws a [StateError] with [message] if `Err`.
   T expect(String message);
@@ -165,14 +217,14 @@ sealed class Result<T> extends Equatable {
   ///
   /// final either = result.toEither(); // Either.Right(5)
   /// ```
-  Either<L, T> toEither<L>();
+  Either<E, T> toEither();
 }
 
 /// {@template ok}
 /// Represents a successful `Result` containing a value.
 /// {@endtemplate}
 @immutable
-final class Ok<T> extends Result<T> {
+final class Ok<T, E> extends Result<T, E> {
   const Ok(this.value);
 
   final T value;
@@ -190,31 +242,33 @@ final class Ok<T> extends Result<T> {
   T expect(String message) => value;
 
   @override
-  Result<R> flatMap<R>(Result<R> Function(T) f) => f(value);
+  Result<R, E> flatMap<R>(Result<R, E> Function(T value) f) => f(value);
 
   @override
   R fold<R>({
-    required R Function(T) onOk,
-    required R Function(Object error, StackTrace? stackTrace) onErr,
+    required R Function(T value) onOk,
+    required R Function(E error, StackTrace? stackTrace) onErr,
   }) => onOk(value);
 
   @override
-  T getOrElse(T Function() orElse) => value;
+  T getOrElse(T Function(E error) orElse) => value;
 
   @override
-  Result<R> map<R>(R Function(T) f) => .ok(f(value));
+  Result<R, E> map<R>(R Function(T value) f) => Ok<R, E>(f(value));
 
   @override
-  Result<T> mapErr(Object Function(Object) f) => this;
+  Result<T, F> mapErr<F>(F Function(E error) f) => Ok<T, F>(value);
 
   @override
-  Result<T> orElse(Result<T> Function() f) => this;
+  Result<T, E> orElse(
+    Result<T, E> Function(E error, StackTrace? stackTrace) f,
+  ) => this;
 
   @override
   Option<T> toOption() => .some(value);
 
   @override
-  Either<L, T> toEither<L>() => .right(value);
+  Either<E, T> toEither() => .right(value);
 
   @override
   bool get stringify => true;
@@ -227,10 +281,10 @@ final class Ok<T> extends Result<T> {
 /// Represents a failed `Result` containing an error and optional stack trace.
 /// {@endtemplate}
 @immutable
-final class Err<T> extends Result<T> {
+final class Err<T, E> extends Result<T, E> {
   const Err(this.error, [this.stackTrace]);
 
-  final Object error;
+  final E error;
 
   final StackTrace? stackTrace;
 
@@ -241,8 +295,10 @@ final class Err<T> extends Result<T> {
   bool get isErr => true;
 
   @override
-  T unwrap() =>
-      Error.throwWithStackTrace(error, stackTrace ?? StackTrace.current);
+  T unwrap() => Error.throwWithStackTrace(
+    error as Object,
+    stackTrace ?? StackTrace.current,
+  );
 
   @override
   T expect(String message) {
@@ -255,38 +311,60 @@ final class Err<T> extends Result<T> {
   }
 
   @override
-  Result<R> flatMap<R>(Result<R> Function(T) f) => .err(error, stackTrace);
+  Result<R, E> flatMap<R>(Result<R, E> Function(T value) f) =>
+      Err<R, E>(error, stackTrace);
 
   @override
   R fold<R>({
-    required R Function(T) onOk,
-    required R Function(Object error, StackTrace? stackTrace) onErr,
+    required R Function(T value) onOk,
+    required R Function(E error, StackTrace? stackTrace) onErr,
   }) => onErr(error, stackTrace);
 
   @override
-  T getOrElse(T Function() orElse) => orElse();
+  T getOrElse(T Function(E error) orElse) => orElse(error);
 
   @override
-  Result<R> map<R>(R Function(T) f) => .err(error, stackTrace);
+  Result<R, E> map<R>(R Function(T value) f) => Err<R, E>(error, stackTrace);
 
   @override
-  Result<T> mapErr(Object Function(Object) f) => .err(f(error), stackTrace);
+  Result<T, F> mapErr<F>(F Function(E error) f) =>
+      Err<T, F>(f(error), stackTrace);
 
   @override
-  Result<T> orElse(Result<T> Function() f) => f();
+  Result<T, E> orElse(
+    Result<T, E> Function(E error, StackTrace? stackTrace) f,
+  ) => f(error, stackTrace);
 
   @override
   Option<T> toOption() => .none();
 
   @override
-  Either<L, T> toEither<L>() => .left(error as L);
+  Either<E, T> toEither() => .left(error);
 
   @override
-  List<Object> get props => [error];
+  List<Object?> get props => [error];
 }
 
 /// Extension on `Future` to convert it to a `Result`.
 extension AsyncResultX<T> on Future<T> {
-  /// Converts a `Future<T>` to `Future<Result<T>>`.
-  Future<Result<T>> toResult() => Result.fromAsync(() => this);
+  /// Converts a `Future<T>` to a `Future<Result<T, E>>`.
+  ///
+  /// The resulting `Result` will be an `Ok` with the future's value if it
+  /// completes successfully.
+  ///
+  /// If the future completes with an error, the error is caught and wrapped
+  /// in an `Err`. The type of the error `E` must be specified. If `E` is
+  /// not provided, it will be `dynamic`.
+  ///
+  /// This is a convenience method for `Result.fromAsync`.
+  ///
+  /// Example:
+  /// ```dart
+  /// Future<int> fetchValue() async => 42;
+  /// Future<Result<int, String>> result = fetchValue().toResult<String>();
+  ///
+  /// Future<int> fetchError() async => throw 'error';
+  /// Future<Result<int, String>> result2 = fetchError().toResult<String>();
+  /// ```
+  Future<Result<T, E>> toResult<E>() => Result.fromAsync(() => this);
 }

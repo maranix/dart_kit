@@ -258,16 +258,14 @@ sealed class Option<T> extends Equatable {
   /// ```
   bool contains(T val);
 
-  /// Transforms [this] into [Result<T>] with `Some(value)` as `Ok` and [mapErr] as `Err` if `None`.
+  /// Transforms [this] into [Result<T, E>] with `Some(value)` as `Ok` and [err] as `Err` if `None`.
   ///
   /// Example:
   /// ```dart
   /// Option<int> x = .some(42);
-  /// final result = x.toResult(() => Exception()); // Result.Ok(42)
+  /// final result = x.toResult(() => "error"); // Result.Ok(42)
   /// ```
-  ///
-  /// If no `mapErr` is provided, it throws an error when this is `None`.
-  Result<T> toResult([Object Function()? mapErr]);
+  Result<T, E> toResult<E>(E Function() err);
 
   /// Transforms [this] into [Either<L, T>] with `Some(value)` as `Right` and [left] as `Left` if `None`.
   ///
@@ -347,7 +345,7 @@ final class Some<T> extends Option<T> {
   Option<T> orElse(Option<T> Function() f) => this;
 
   @override
-  Result<T> toResult([Object Function()? mapErr]) => .ok(value);
+  Result<T, E> toResult<E>(E Function() err) => Ok(value);
 
   @override
   Either<L, T> toEither<L>([L Function()? left]) => .right(value);
@@ -415,14 +413,7 @@ final class None<T> extends Option<T> {
   Option<T> orElse(Option<T> Function() f) => f();
 
   @override
-  Result<T> toResult([Object Function()? mapErr]) {
-    if (mapErr == null) {
-      throw StateError(
-        "Cannot convert None to Result without a mapErr callback.",
-      );
-    }
-    return Result.err(mapErr());
-  }
+  Result<T, E> toResult<E>(E Function() err) => Err(err());
 
   @override
   Either<L, T> toEither<L>([L Function()? left]) {

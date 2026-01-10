@@ -1,3 +1,10 @@
+## 1.1.0
+
+- Refactored `Result<T>` to `Result<T, E>` to support type-safe errors. (2026-01-10)
+  - This is a breaking change that improves error handling by allowing the error type to be specified.
+  - Updated `from` and `fromAsync` methods on `Result` to support generic error types and an `onError` callback.
+  - Updated `toResult` methods on `Either` and `Option` to be compatible with the new `Result<T, E>` type.
+
 ## 1.0.0
 
 - Initial version. (2026-01-10)

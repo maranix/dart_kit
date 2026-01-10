@@ -185,32 +185,11 @@ sealed class Either<L, R> extends Equatable {
   /// ```
   Either<R, L> swap();
 
-  /// Converts this `Either` into a `Result`.
+  /// Converts this `Either<L, R>` into a `Result<R, L>`.
   ///
-  /// The `Right` value is mapped to `Ok`.
-  /// The `Left` value is mapped to `Err` using [mapErr].
-  ///
-  /// This method is useful when an `Either` is used as a general-purpose
-  /// sum type, but needs to be converted into a `Result` with explicit
-  /// success and failure semantics.
-  ///
-  /// Example:
-  /// ```dart
-  /// final either = Either<String, int>.left("not a number");
-  ///
-  /// final result = either.toResult(
-  ///   (err) => FormatException(err),
-  /// );
-  ///
-  /// // result is Err(FormatException("not a number"))
-  /// ```
-  ///
-  /// If this is a `Right`, [mapErr] is not evaluated.
-  ///
-  /// See also:
-  /// - [Either], for a general-purpose two-value sum type
-  /// - [Result], for success/failure semantics
-  Result<R> toResult([Object Function(L)? mapErr]);
+  /// - `Right(value)` becomes `Ok(value)`.
+  /// - `Left(value)` becomes `Err(value)`.
+  Result<R, L> toResult();
 
   /// Converts [this] into an [Option].
   ///
@@ -321,15 +300,7 @@ final class Left<L, R> extends Either<L, R> {
   Either<R, L> swap() => .right(value);
 
   @override
-  Result<R> toResult([Object Function(L)? mapErr]) {
-    if (mapErr == null) {
-      throw StateError(
-        "Cannot convert Left to Result without a mapErr callback.",
-      );
-    }
-
-    return Result.err(mapErr(value));
-  }
+  Result<R, L> toResult() => Err(value);
 
   @override
   Option<R> toOption() => .none();
@@ -427,7 +398,7 @@ final class Right<L, R> extends Either<L, R> {
   Either<R, L> swap() => .left(value);
 
   @override
-  Result<R> toResult([Object Function(L)? mapErr]) => .ok(value);
+  Result<R, L> toResult() => Ok(value);
 
   @override
   Option<R> toOption() => .some(value);

@@ -188,25 +188,18 @@ void main() {
 
     test('toResult() should convert Right to Ok', () {
       final either = Either<String, int>.right(42);
-      final result = either.toResult((err) => FormatException(err));
+      final result = either.toResult();
       expect(result.isOk, true);
       expect(result.unwrap(), 42);
     });
 
     test('toResult() should convert Left to Err', () {
       final either = Either<String, int>.left('Error');
-      final result = either.toResult((err) => FormatException(err));
+      final result = either.toResult();
       expect(result.isErr, true);
-      expect(() => result.unwrap(), throwsFormatException);
+      expect(() => result.unwrap(), throwsA(isA<String>()));
+      expect(() => result.unwrap(), throwsA(equals('Error')));
     });
-
-    test(
-      'toResult() should thrown when transofrming Left to Err without mapErr callback',
-      () {
-        final either = Either<String, int>.left('Error');
-        expect(() => either.toResult(), throwsStateError);
-      },
-    );
 
     test('toOption() should convert Right to Ok', () {
       final either = Either<String, int>.right(42);

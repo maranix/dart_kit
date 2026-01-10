@@ -240,29 +240,22 @@ void main() {
 
     test('toResult correctly transforms to Result', () {
       Option<int> opt = .some(5);
-      final result = opt.toResult(() => Exception());
+      final result = opt.toResult(() => 'error');
 
-      expect(result, isA<Result>());
+      expect(result, isA<Result<int, String>>());
       expect(result.isOk, isTrue);
       expect(result.unwrap(), equals(5));
     });
 
-    test('toResult throws when transforming from None to Result', () {
+    test('toResult correctly transforms from None to Result', () {
       Option<int> opt = .none();
       final result = opt.toResult(() => Exception());
 
-      expect(result, isA<Result>());
+      expect(result, isA<Result<int, Exception>>());
       expect(result.isErr, isTrue);
       expect(() => result.unwrap(), throwsException);
     });
 
-    test(
-      'toResult throws when transforming from None to Result without mapErr callback',
-      () {
-        Option<int> opt = .none();
-        expect(() => opt.toResult(), throwsStateError);
-      },
-    );
 
     test('toEither correctly transforms to Either', () {
       Option<int> opt = .some(5);

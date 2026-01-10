@@ -10,7 +10,7 @@ The library provides three core data types to handle common programming scenario
 
 *   **Option<T>**: A container for an optional value. An instance of `Option` is either `Some`, containing a value, or `None`, indicating the absence of a value. It provides a strong encouragement at compile-time to handle the absence of a value explicitly, offering an alternative to using `null`.
 
-*   **Result<T>**: A type that represents the outcome of an operation that can either succeed (`Ok`) or fail (`Err`). It is designed for functions that can fail, compelling the developer to handle both outcomes explicitly. This makes error handling more robust and significantly reduces the risk of runtime crashes from unhandled exceptions.
+*   **Result<T, E>**: A type that represents the outcome of an operation that can either succeed (`Ok`) or fail (`Err`). `T` is the type of the success value, and `E` is the type of the error. It is designed for functions that can fail, compelling the developer to handle both outcomes explicitly. This makes error handling more robust and significantly reduces the risk of runtime crashes from unhandled exceptions.
 
 *   **Either<L, R>**: A generic type that can hold a value of one of two distinct types: `Left` or `Right`. By convention, `Right` is used to represent a success or expected value, while `Left` is used for a failure or alternative value. It is similar to `Result` but more general.
 
@@ -20,7 +20,7 @@ To add `daxle` to your project, add the following dependency in your `pubspec.ya
 
 ```yaml
 dependencies:
-  daxle: ^1.0.0
+  daxle: ^1.1.0
 ```
 
 Then, run `dart pub get` or `flutter pub get`.
