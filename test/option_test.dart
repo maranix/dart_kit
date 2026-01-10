@@ -1,4 +1,6 @@
+import 'package:dart_kit/src/either.dart';
 import 'package:dart_kit/src/option.dart';
+import 'package:dart_kit/src/result.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -235,5 +237,56 @@ void main() {
         throwsA(isA<StateError>()),
       );
     });
+
+    test('toResult correctly transforms to Result', () {
+      Option<int> opt = .some(5);
+      final result = opt.toResult(() => Exception());
+
+      expect(result, isA<Result>());
+      expect(result.isOk, isTrue);
+      expect(result.unwrap(), equals(5));
+    });
+
+    test('toResult throws when transforming from None to Result', () {
+      Option<int> opt = .none();
+      final result = opt.toResult(() => Exception());
+
+      expect(result, isA<Result>());
+      expect(result.isErr, isTrue);
+      expect(() => result.unwrap(), throwsException);
+    });
+
+    test(
+      'toResult throws when transforming from None to Result without mapErr callback',
+      () {
+        Option<int> opt = .none();
+        expect(() => opt.toResult(), throwsStateError);
+      },
+    );
+
+    test('toEither correctly transforms to Either', () {
+      Option<int> opt = .some(5);
+      final result = opt.toEither();
+
+      expect(result, isA<Either>());
+      expect(result.isRight, isTrue);
+      expect(result.unwrap(), equals(5));
+    });
+
+    test('toEither correctly transforming from None to Either', () {
+      Option<int> opt = .none();
+      final result = opt.toEither(() => "success");
+
+      expect(result, isA<Either>());
+      expect(result.isLeft, isTrue);
+      expect(result.unwrapLeft(), equals("success"));
+    });
+    test(
+      'toEither throws when transforming from None to Either without callback',
+      () {
+        Option<int> opt = .none();
+        expect(() => opt.toEither(), throwsStateError);
+      },
+    );
   });
 }

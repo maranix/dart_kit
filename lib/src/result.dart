@@ -1,3 +1,5 @@
+import 'package:dart_kit/src/either.dart';
+import 'package:dart_kit/src/option.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
@@ -142,6 +144,28 @@ sealed class Result<T> extends Equatable {
 
   /// Returns the value inside `Ok`, or throws a [StateError] with [message] if `Err`.
   T expect(String message);
+
+  /// Transforms [this] into [Option], `Ok(value)` becomes `Some(value)` and `Err` becomes `None`.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = .ok(5);
+  /// print(result.unwrap()); // 5
+  ///
+  /// final option = result.toOption(); // Some(5)
+  /// ```
+  Option<T> toOption();
+
+  /// Transforms [this] into [Either], `Ok(value)` becomes `Right(value)` and `Err` becomes `Left(error)`.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = .ok(5);
+  /// print(result.unwrap()); // 5
+  ///
+  /// final either = result.toEither(); // Either.Right(5)
+  /// ```
+  Either<L, T> toEither<L>();
 }
 
 /// {@template ok}
@@ -185,6 +209,12 @@ final class Ok<T> extends Result<T> {
 
   @override
   Result<T> orElse(Result<T> Function() f) => this;
+
+  @override
+  Option<T> toOption() => .some(value);
+
+  @override
+  Either<L, T> toEither<L>() => .right(value);
 
   @override
   bool get stringify => true;
@@ -244,6 +274,12 @@ final class Err<T> extends Result<T> {
 
   @override
   Result<T> orElse(Result<T> Function() f) => f();
+
+  @override
+  Option<T> toOption() => .none();
+
+  @override
+  Either<L, T> toEither<L>() => .left(error as L);
 
   @override
   List<Object> get props => [error];

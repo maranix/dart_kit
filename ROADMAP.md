@@ -33,7 +33,8 @@ to help write safer, more expressive, and predictable Dart code.
   - [x] from
   - [x] fromAsync
   - [x] orElse
-  - [ ] toResult
+  - [x] toResult
+  - [x] toEither
 
 - [x] Result
   - [x] Ok
@@ -48,8 +49,8 @@ to help write safer, more expressive, and predictable Dart code.
   - [x] from
   - [x] fromAsync
   - [x] orElse
-  - [ ] toEither
-  - [ ] toOption
+  - [x] toOption
+  - [x] toEither
 
 ### Either<L, R>
 - [x] Either
@@ -71,6 +72,7 @@ to help write safer, more expressive, and predictable Dart code.
   - [x] orElse (default Right value) 
   - [x] orElseLeft (default Left value)
   - [x] toResult (convert Either<L, R> → Result<R, L>)
+  - [x] toOption (convert Either<L, R> → Option<R>)
 ---
 
 ## 🧩 Planned Core Types

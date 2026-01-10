@@ -1,3 +1,5 @@
+import 'package:dart_kit/src/either.dart';
+import 'package:dart_kit/src/result.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart' show immutable, useResult;
 
@@ -21,7 +23,7 @@ import 'package:meta/meta.dart' show immutable, useResult;
 /// ```
 /// {@endtemplate}
 @immutable
-sealed class Option<T extends Object> extends Equatable {
+sealed class Option<T> extends Equatable {
   /// {@macro option}
   const Option();
 
@@ -255,6 +257,28 @@ sealed class Option<T extends Object> extends Equatable {
   /// x.contains(42); // true
   /// ```
   bool contains(T val);
+
+  /// Transforms [this] into [Result<T>] with `Some(value)` as `Ok` and [mapErr] as `Err` if `None`.
+  ///
+  /// Example:
+  /// ```dart
+  /// Option<int> x = .some(42);
+  /// final result = x.toResult(() => Exception()); // Result.Ok(42)
+  /// ```
+  ///
+  /// If no `mapErr` is provided, it throws an error when this is `None`.
+  Result<T> toResult([Object Function()? mapErr]);
+
+  /// Transforms [this] into [Either<L, T>] with `Some(value)` as `Right` and [left] as `Left` if `None`.
+  ///
+  /// Example:
+  /// ```dart
+  /// Option<int> x = .some(42);
+  /// final result = x.toEither(() => Exception()); // Either.Right(42)
+  /// ```
+  ///
+  /// If no `left` is provided, it throws an error when this is `None`.
+  Either<L, T> toEither<L>([L Function()? left]);
 }
 
 /// {@template some_class}
@@ -270,7 +294,7 @@ sealed class Option<T extends Object> extends Equatable {
 /// ```
 /// {@endtemplate}
 @immutable
-final class Some<T extends Object> extends Option<T> {
+final class Some<T> extends Option<T> {
   /// {@macro some_class}
   const Some(this.value);
 
@@ -323,10 +347,16 @@ final class Some<T extends Object> extends Option<T> {
   Option<T> orElse(Option<T> Function() f) => this;
 
   @override
+  Result<T> toResult([Object Function()? mapErr]) => .ok(value);
+
+  @override
+  Either<L, T> toEither<L>([L Function()? left]) => .right(value);
+
+  @override
   bool get stringify => true;
 
   @override
-  List<Object> get props => [value];
+  List<Object?> get props => [value];
 }
 
 /// {@template none_class}
@@ -341,7 +371,7 @@ final class Some<T extends Object> extends Option<T> {
 /// ```
 /// {@endtemplate}
 @immutable
-final class None<T extends Object> extends Option<T> {
+final class None<T> extends Option<T> {
   /// {@macro none_class}
   const None();
 
@@ -383,6 +413,27 @@ final class None<T extends Object> extends Option<T> {
 
   @override
   Option<T> orElse(Option<T> Function() f) => f();
+
+  @override
+  Result<T> toResult([Object Function()? mapErr]) {
+    if (mapErr == null) {
+      throw StateError(
+        "Cannot convert None to Result without a mapErr callback.",
+      );
+    }
+    return Result.err(mapErr());
+  }
+
+  @override
+  Either<L, T> toEither<L>([L Function()? left]) {
+    if (left == null) {
+      throw StateError(
+        "Cannot convert None to Either without a left callback.",
+      );
+    }
+
+    return Either.left(left());
+  }
 
   @override
   bool operator ==(Object other) => other is None; // ignore generics

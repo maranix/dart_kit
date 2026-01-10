@@ -1,3 +1,4 @@
+import 'package:dart_kit/src/option.dart';
 import 'package:equatable/equatable.dart';
 import 'package:dart_kit/src/result.dart';
 
@@ -209,7 +210,29 @@ sealed class Either<L, R> extends Equatable {
   /// See also:
   /// - [Either], for a general-purpose two-value sum type
   /// - [Result], for success/failure semantics
-  Result<R> toResult(Object Function(L) mapErr);
+  Result<R> toResult([Object Function(L)? mapErr]);
+
+  /// Converts [this] into an [Option].
+  ///
+  /// The `Right` value is mapped to `Some`.
+  /// The `Left` value is ignored and becomes `None`.
+  ///
+  /// This method is useful when an `Either` is used as a general-purpose
+  /// sum type, but needs to be converted into an [Option].
+  ///
+  /// Example:
+  /// ```dart
+  /// final either = Either<String, int>.left("not a number");
+  ///
+  /// final result = either.toOption();
+  ///
+  /// // result is None<int>()
+  /// ```
+  ///
+  /// See also:
+  /// - [Either], for a general-purpose two-value sum type
+  /// - [Option], for Some/None semantics
+  Option<R> toOption();
 
   @override
   bool get stringify => true;
@@ -298,7 +321,18 @@ final class Left<L, R> extends Either<L, R> {
   Either<R, L> swap() => .right(value);
 
   @override
-  Result<R> toResult(Object Function(L) mapErr) => .err(mapErr(value));
+  Result<R> toResult([Object Function(L)? mapErr]) {
+    if (mapErr == null) {
+      throw StateError(
+        "Cannot convert Left to Result without a mapErr callback.",
+      );
+    }
+
+    return Result.err(mapErr(value));
+  }
+
+  @override
+  Option<R> toOption() => .none();
 
   @override
   Right<L, R> orElse(Right<L, R> Function() orElse) => orElse();
@@ -393,7 +427,10 @@ final class Right<L, R> extends Either<L, R> {
   Either<R, L> swap() => .left(value);
 
   @override
-  Result<R> toResult(Object Function(L) mapErr) => .ok(value);
+  Result<R> toResult([Object Function(L)? mapErr]) => .ok(value);
+
+  @override
+  Option<R> toOption() => .some(value);
 
   @override
   Right<L, R> orElse(Right<L, R> Function() orElse) => this;

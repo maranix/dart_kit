@@ -200,6 +200,28 @@ void main() {
       expect(() => result.unwrap(), throwsFormatException);
     });
 
+    test(
+      'toResult() should thrown when transofrming Left to Err without mapErr callback',
+      () {
+        final either = Either<String, int>.left('Error');
+        expect(() => either.toResult(), throwsStateError);
+      },
+    );
+
+    test('toOption() should convert Right to Ok', () {
+      final either = Either<String, int>.right(42);
+      final result = either.toOption();
+      expect(result.isSome, true);
+      expect(result.unwrap(), 42);
+    });
+
+    test('toOption() should convert Left to Err', () {
+      final either = Either<String, int>.left('Error');
+      final result = either.toOption();
+      expect(result.isNone, true);
+      expect(() => result.unwrap(), throwsStateError);
+    });
+
     test('Left with complex type should be handled correctly', () {
       final either = Either<Map<String, dynamic>, String>.left({
         'message': 'failure',
