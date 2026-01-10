@@ -99,6 +99,34 @@ void main() {
 }
 ```
 
+#### Destructuring with `toRecord`
+
+The `toRecord` method allows you to destructure a `Result` into a record of two functions: `(T Function() ok, E Function() err)`. This can be useful for handling the two possible states in a more direct way.
+
+```dart
+void main() {
+  Result<int, String> success = .ok(42);
+  final successRecord = success.toRecord();
+
+  try {
+    print('Success value: ${successRecord.ok()}'); // Prints: Success value: 42
+    successRecord.err(); // This would throw a StateError
+  } catch (e) {
+    print(e);
+  }
+
+  Result<int, String> failure = .err('Something went wrong');
+  final failureRecord = failure.toRecord();
+
+  try {
+    failureRecord.ok(); // This would throw a StateError
+  } catch (e) {
+    print(e); // Prints the StateError
+  }
+  print('Failure error: ${failureRecord.err()}'); // Prints: Failure error: Something went wrong
+}
+```
+
 ### Either
 
 Use `Either` to represent a value that can be one of two distinct types.

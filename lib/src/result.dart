@@ -209,7 +209,7 @@ sealed class Result<T, E> extends Equatable {
   Option<T> toOption();
 
   /// Transforms [this] into [Either], `Ok(value)` becomes `Right(value)` and `Err` becomes `Left(error)`.
-  ///
+  //
   /// Example:
   /// ```dart
   /// final result = .ok(5);
@@ -218,6 +218,34 @@ sealed class Result<T, E> extends Equatable {
   /// final either = result.toEither(); // Either.Right(5)
   /// ```
   Either<E, T> toEither();
+
+  /// Transforms [this] into a record with two named functions:
+  /// - The `ok` function returns the value `T` if the result is `Ok(value)`, or throws a `StateError` if it's `Err(error)`.
+  /// - The `err` function returns the error `E` if the result is `Err(error)`, or throws a `StateError` if it's `Ok(value)`.
+  ///
+  /// This allows you to handle both the value and the error through two separate functions.
+  /// If you call the function for the wrong state (i.e., calling the value function on an `Err` or the error function on an `Ok`),
+  /// a [StateError] will be thrown.
+  ///
+  /// Example:
+  /// ```dart
+  /// final result = Result.ok(5);
+  /// final record = result.toRecord();
+  ///
+  /// print(record.ok()); // 5 (calls the function to extract the value)
+  /// print(record.err()); // Throws a StateError (because the result is Ok)
+  ///
+  /// final errResult = Result.err("Error");
+  /// final errRecord = errResult.toRecord();
+  ///
+  /// print(errRecord.ok()); // Throws a StateError (because the result is Err)
+  /// print(errRecord.err()); // "Error" (calls the function to extract the error)
+  /// ```
+  ///
+  /// The returned record contains two functions:
+  /// - `ok` is the function to extract the `T` value, or throws a `StateError` if the result is `Err`.
+  /// - `err` is the function to extract the `E` error, or throws a `StateError` if the result is `Ok`.
+  ({T Function() ok, E Function() err}) toRecord();
 }
 
 /// {@template ok}
@@ -269,6 +297,12 @@ final class Ok<T, E> extends Result<T, E> {
 
   @override
   Either<E, T> toEither() => .right(value);
+
+  @override
+  ({T Function() ok, E Function() err}) toRecord() => (
+        ok: () => value,
+        err: () => throw StateError("toRecord, Result is not in `Err` state"),
+      );
 
   @override
   bool get stringify => true;
@@ -340,6 +374,12 @@ final class Err<T, E> extends Result<T, E> {
 
   @override
   Either<E, T> toEither() => .left(error);
+
+  @override
+  ({T Function() ok, E Function() err}) toRecord() => (
+        ok: () => throw StateError("toRecord, Result is not in `Ok` state"),
+        err: () => error,
+      );
 
   @override
   List<Object?> get props => [error];
