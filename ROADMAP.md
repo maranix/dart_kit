@@ -78,11 +78,16 @@ to help write safer, more expressive, and predictable Dart code.
 ## 🧩 Planned Core Types
 
 ### Functional Types
-- [ ] Unit
+
+(TBD for Research and Discussion)
+
 - [ ] Try<T>
 - [ ] Lazy<T>
 
 ### Async Utilities
+
+(TBD for Research and Discussion)
+
 - [ ] Task<T>
 - [ ] AsyncResult<T, E>
 - [ ] Result extensions for `Future`
@@ -90,6 +95,8 @@ to help write safer, more expressive, and predictable Dart code.
 ---
 
 ## 📚 Collection Utilities
+
+(TBD for Research and Discussion)
 
 - [ ] NonEmptyList<T>
 - [ ] Safe collection extensions
@@ -101,18 +108,12 @@ to help write safer, more expressive, and predictable Dart code.
 
 ## 🧠 Validation & Errors
 
-- [ ] Validated<T, E>
-- [ ] Error base types
-  - [ ] Failure
-  - [ ] ValidationError
-  - [ ] UnexpectedError
+- [ ] Validated<T, E> (TBD for Research and Discussion)
 
 ---
 
 ## ✨ Quality of Life
 
-- [ ] Equality & hashing helpers
-- [ ] Debug helpers
 - [ ] Function extensions
   - [ ] pipe
   - [ ] tap
