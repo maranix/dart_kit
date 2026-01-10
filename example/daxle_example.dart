@@ -16,8 +16,8 @@ void main() {
   print('');
 
   // --- Result ---
-  Result<int> success = Result.ok(100);
-  Result<int> failure = Result.err('Something went wrong');
+  Result<int, String> success = Result.ok(100);
+  Result<int, String> failure = Result.err('Something went wrong');
 
   print('success.isOk: ${success.isOk}');
   print('failure.isErr: ${failure.isErr}');
@@ -25,8 +25,8 @@ void main() {
   final mappedSuccess = success.map((v) => v * 2);
   print('success.map((v) => v * 2): ${mappedSuccess.unwrap()}');
 
-  final resultValue = failure.getOrElse(() => 0);
-  print('failure.getOrElse(() => 0): $resultValue');
+  final resultValue = failure.getOrElse((e) => 0);
+  print('failure.getOrElse((e) => 0): $resultValue');
   print('');
 
   // --- Either ---
