@@ -1,5 +1,5 @@
 import 'package:test/test.dart';
-import 'package:dart_kit/src/either.dart';
+import 'package:daxle/src/either.dart';
 
 void main() {
   group('Either<L, R> Tests', () {

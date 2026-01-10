@@ -1,6 +1,6 @@
-import 'package:dart_kit/src/option.dart';
+import 'package:daxle/src/option.dart';
 import 'package:equatable/equatable.dart';
-import 'package:dart_kit/src/result.dart';
+import 'package:daxle/src/result.dart';
 
 /// {@template either}
 /// Represents a value of one of two possible types: [L] (Left) or [R] (Right).

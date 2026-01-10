@@ -1,4 +1,4 @@
-.PHONY test fix analyze publish publish_force
+.PHONY: test fix analyze publish publish_force
 
 test:
 	dart test

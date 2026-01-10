@@ -1,6 +1,6 @@
-# dart_kit — Feature Roadmap & Tracker
+# daxle — Feature Roadmap & Tracker
 
-A living document to track implemented and planned features for `dart_kit`.
+A living document to track implemented and planned features for `daxle`.
 
 ---
 

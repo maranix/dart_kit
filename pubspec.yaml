@@ -1,9 +1,9 @@
-name: dart_kit
+name: daxle
 description: A lightweight Dart utility package offering common abstractions and missing features to write safer, more expressive code.
 version: 1.0.0
-homepage: https://github.com/maranix/dart_kit
-repository: https://github.com/maranix/dart_kit
-issues: https://github.com/maranix/dart_kit/issues
+homepage: https://github.com/maranix/daxle
+repository: https://github.com/maranix/daxle
+issues: https://github.com/maranix/daxle/issues
 
 topics:
   - functional

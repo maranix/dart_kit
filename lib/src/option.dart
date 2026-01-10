@@ -1,5 +1,5 @@
-import 'package:dart_kit/src/either.dart';
-import 'package:dart_kit/src/result.dart';
+import 'package:daxle/src/either.dart';
+import 'package:daxle/src/result.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart' show immutable, useResult;
 

@@ -1,6 +1,6 @@
-import 'package:dart_kit/src/either.dart';
-import 'package:dart_kit/src/option.dart';
-import 'package:dart_kit/src/result.dart';
+import 'package:daxle/src/either.dart';
+import 'package:daxle/src/option.dart';
+import 'package:daxle/src/result.dart';
 import 'package:test/test.dart';
 
 void main() {

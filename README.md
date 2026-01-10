@@ -1,6 +1,6 @@
-# dart_kit
+# daxle
 
-`dart_kit` is a library that provides a set of functional programming constructs inspired by languages like Rust and Haskell. It is designed to enhance the robustness and clarity of Dart applications by offering explicit, type-safe mechanisms for handling fallible operations and optional values.
+`daxle` is a library that provides a set of functional programming constructs inspired by languages like Rust and Haskell. It is designed to enhance the robustness and clarity of Dart applications by offering explicit, type-safe mechanisms for handling fallible operations and optional values.
 
 This approach promotes safer error management and reduces the reliance on traditional mechanisms such as throwing exceptions or using `null`.
 
@@ -16,11 +16,11 @@ The library provides three core data types to handle common programming scenario
 
 ## Installation
 
-To add `dart_kit` to your project, add the following dependency in your `pubspec.yaml` file:
+To add `daxle` to your project, add the following dependency in your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  dart_kit: ^1.0.0
+  daxle: ^1.0.0
 ```
 
 Then, run `dart pub get` or `flutter pub get`.
@@ -30,7 +30,7 @@ Then, run `dart pub get` or `flutter pub get`.
 Import the library to start using the functional types.
 
 ```dart
-import 'package:dart_kit/dart_kit.dart';
+import 'package:daxle/daxle.dart';
 ```
 
 ### Option
@@ -43,8 +43,8 @@ void main() {
 
   // Tries to find 'port' in the config map.
   Option<String> portOption = config.containsKey('port')
-      ? Option.some(config['port']!)
-      : Option.none();
+      ? .some(config['port']!)
+      : .none();
 
   // Use flatMap to handle a potential parsing failure.
   Option<int> portNumber = portOption.flatMap((p) =>
@@ -60,8 +60,8 @@ void main() {
 
   // Tries to find 'user', which is absent.
   Option<String> userOption = config.containsKey('user')
-      ? Option.some(config['user']!)
-      : Option.none();
+      ? .some(config['user']!)
+      : .none();
 
   print('User: ${userOption.getOrElse(() => 'guest')}'); // Prints: User: guest
 }
@@ -75,9 +75,9 @@ Use `Result` to handle functions that can succeed or fail, making error handling
 void main() {
   Result<int, String> divide(int a, int b) {
     if (b == 0) {
-      return Result.err('Cannot divide by zero');
+      return .err('Cannot divide by zero');
     } else {
-      return Result.ok(a ~/ b);
+      return .ok(a ~/ b);
     }
   }
 
@@ -108,8 +108,8 @@ void main() {
   // A function that returns one of two types
   Either<String, int> parseInput(String input) {
     return int.tryParse(input) != null
-        ? Either.right(int.parse(input))
-        : Either.left('Input is not a number');
+        ? .right(int.parse(input))
+        : .left('Input is not a number');
   }
 
   Either<String, int> numericInput = parseInput('123');
@@ -131,7 +131,7 @@ void main() {
 
 ## Contributing
 
-If you would like to contribute to `dart_kit`, please follow the steps below:
+If you would like to contribute to `daxle`, please follow the steps below:
 
 *   Fork this repository on GitHub.
 *   Create a new branch for your changes.
@@ -140,5 +140,5 @@ If you would like to contribute to `dart_kit`, please follow the steps below:
 
 ## License
 
-`dart_kit` is released under the MIT License. See the [LICENSE](LICENSE) for more information.
+`daxle` is released under the MIT License. See the [LICENSE](LICENSE) for more information.
 

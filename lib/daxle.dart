@@ -1,4 +1,4 @@
-/// `dart_kit` is a library that provides a set of functional programming constructs
+/// `daxle` is a library that provides a set of functional programming constructs
 /// inspired by languages like Rust and Haskell. It is designed to enhance the
 /// robustness and clarity of Dart applications by offering explicit, type-safe
 /// mechanisms for handling fallible operations and optional values.
@@ -31,7 +31,7 @@
 /// ### Example:
 ///
 /// ```dart
-/// import 'package:dart_kit/dart_kit.dart';
+/// import 'package:daxle/daxle.dart';
 ///
 /// Result<int, String> divide(int a, int b) {
 ///   if (b == 0) {
@@ -73,7 +73,7 @@
 /// ### Example:
 ///
 /// ```dart
-/// import 'package:dart_kit/dart_kit.dart';
+/// import 'package:daxle/daxle.dart';
 ///
 /// Option<String> findUser(String id) {
 ///   if (id == '123') {
@@ -112,7 +112,7 @@
 /// ### Example:
 ///
 /// ```dart
-/// import 'package:dart_kit/dart_kit.dart';
+/// import 'package:daxle/daxle.dart';
 ///
 /// Either<String, int> parseNumber(String text) {
 ///   try {
