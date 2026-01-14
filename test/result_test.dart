@@ -271,23 +271,5 @@ void main() {
       expect(either.isLeft, isTrue);
       expect(either.unwrapLeft(), same(error));
     });
-
-    group('toRecord', () {
-      test('on Ok returns value from ok() and throws from err()', () {
-        final result = Result<int, String>.ok(42);
-        final record = result.toRecord();
-
-        expect(record.ok(), 42);
-        expect(() => record.err(), throwsStateError);
-      });
-
-      test('on Err returns error from err() and throws from ok()', () {
-        final result = Result<int, String>.err('fail');
-        final record = result.toRecord();
-
-        expect(() => record.ok(), throwsStateError);
-        expect(record.err(), 'fail');
-      });
-    });
   });
 }

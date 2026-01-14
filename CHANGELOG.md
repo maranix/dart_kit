@@ -1,6 +1,5 @@
 ## 1.1.0
 
-- Added `toRecord` method to `Result` to destructure it into a record of `(T Function() ok, E Function() err)`.
 - Refactored `Result<T>` to `Result<T, E>` to support type-safe errors. (2026-01-10)
   - This is a breaking change that improves error handling by allowing the error type to be specified.
   - Updated `from` and `fromAsync` methods on `Result` to support generic error types and an `onError` callback.
