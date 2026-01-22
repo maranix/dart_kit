@@ -11,6 +11,7 @@
 /// - [Result]: For operations that can either succeed with a value or fail with an error.
 /// - [Option]: For values that may or may not be present.
 /// - [Either]: For values that can be one of two distinct types.
+/// - [Lazy]: For values that are computed lazily.
 ///
 /// ---
 ///
@@ -136,8 +137,43 @@
 ///   );
 /// }
 /// ```
+/// ```
+///
+/// ---
+///
+/// ## Lazy&lt;T&gt;
+///
+/// The [Lazy] type is a container for a value that is computed lazily. The
+/// computation is performed only when the value is first accessed, and the
+/// result is memoized for subsequent accesses. This is useful for optimizing
+/// performance by deferring expensive computations or initialization until
+/// they are actually needed.
+///
+/// ### Use Cases for Lazy:
+///
+/// -   Deferring expensive computations (e.g., parsing a large file, complex math).
+/// -   Lazy initialization of resources.
+/// -   Memoization of results.
+///
+/// ### Example:
+///
+/// ```dart
+/// import 'package:daxle/daxle.dart';
+///
+/// void main() {
+///   final lazyValue = Lazy(() {
+///     print("Computing...");
+///     return 42;
+///   });
+///
+///   print("Before access");
+///   print(lazyValue.value); // Prints "Computing..." then "42"
+///   print(lazyValue.value); // Prints "42" (no "Computing...")
+/// }
+/// ```
 library;
 
 export 'src/result.dart';
 export 'src/option.dart';
 export 'src/either.dart';
+export 'src/lazy.dart';

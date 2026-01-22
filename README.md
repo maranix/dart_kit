@@ -14,6 +14,8 @@ The library provides three core data types to handle common programming scenario
 
 *   **Either<L, R>**: A generic type that can hold a value of one of two distinct types: `Left` or `Right`. By convention, `Right` is used to represent a success or expected value, while `Left` is used for a failure or alternative value. It is similar to `Result` but more general.
 
+*   **Lazy<T>**: A type that represents a lazily evaluated value. The computation is performed only when the value is first accessed, and the result is memoized for subsequent accesses. It supports both synchronous and asynchronous operations.
+
 ## Installation
 
 To add `daxle` to your project, add the following dependency in your `pubspec.yaml` file:
@@ -126,6 +128,23 @@ void main() {
     (error) => print(error), // Prints: Input is not a number
     (number) => print('This is not called.'),
   );
+}
+```
+
+### Lazy
+
+Use `Lazy` to defer expensive computations until they are needed.
+
+```dart
+void main() {
+  final lazyValue = Lazy(() {
+    print("Computing...");
+    return 42;
+  });
+
+  print("Before access");
+  print(lazyValue.value); // Prints "Computing..." then "42"
+  print(lazyValue.value); // Prints "42" (no "Computing...")
 }
 ```
 
