@@ -27,7 +27,43 @@ Import the package:
 import 'package:daxle_flutter/daxle_flutter.dart';
 ```
 
-*Note: Detailed usage examples and API documentation will be added as more features are implemented in this package.*
+### ViewModel
+
+`ViewModel` builds upon `ChangeNotifier` to offer more capabilities and greater control over initialization and disposal. By providing strict lifecycle management and structured updates, it helps to avoid common bugs and aims to provide a more performant and maintainable architecture while remaining simple and easy to use.
+
+```dart
+class CounterViewModel extends ViewModel {
+  int _count = 0;
+  int get count => _count;
+
+  void increment() {
+    _count++;
+    notifyListeners();
+  }
+
+  @override
+  Future<void> init() async {
+    await super.init(); // Must call super
+    // Perform async initialization here
+  }
+}
+
+void main() async {
+  final vm = CounterViewModel();
+  
+  // Must initialize before use
+  await vm.init();
+
+  vm.addListener(() {
+    print('Count: ${vm.count}');
+  });
+
+  vm.increment();
+
+  // Clean up
+  vm.dispose();
+}
+```
 
 ## Contributing
 
