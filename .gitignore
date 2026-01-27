@@ -1,2 +1,4 @@
 # Ignore agentic instructions
 .agent
+
+.dart_tool/
