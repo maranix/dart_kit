@@ -1,0 +1,26 @@
+name: daxle
+description: A lightweight Dart utility package offering common abstractions and missing features to write safer, more expressive code.
+version: 1.1.0
+homepage: https://github.com/maranix/daxle/tree/main/packages/daxle
+repository: https://github.com/maranix/daxle/tree/main/packages/daxle
+issues: https://github.com/maranix/daxle/issues?q=state%3Aopen%20label%3Adaxle
+
+topics:
+  - functional
+  - option
+  - result
+  - either
+  - fp
+
+environment:
+  sdk: ^3.10.0
+
+resolution: workspace
+
+dependencies:
+  equatable: ^2.0.8
+  meta: ^1.17.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.6
