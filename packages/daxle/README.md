@@ -1,6 +1,6 @@
 # daxle
 
-`daxle` is a library that provides a set of functional programming constructs inspired by languages like Rust and Haskell. It is designed to enhance the robustness and clarity of Dart applications by offering explicit, type-safe mechanisms for handling fallible operations and optional values.
+`daxle` is the core library of the [daxle ecosystem](https://github.com/maranix/daxle). It provides a set of functional programming constructs inspired by languages like Rust and Haskell. It is designed to enhance the robustness and clarity of Dart & Flutter applications by offering explicit, type-safe mechanisms for handling fallible operations and optional values.
 
 This approach promotes safer error management and reduces the reliance on traditional mechanisms such as throwing exceptions or using `null`.
 
@@ -150,14 +150,9 @@ void main() {
 
 ## Contributing
 
-If you would like to contribute to `daxle`, please follow the steps below:
+This package is part of the `daxle` monorepo. Please see the root repository for general contribution guidelines.
 
-*   Fork this repository on GitHub.
-*   Create a new branch for your changes.
-*   Make your changes and commit them.
-*   Submit a pull request to the main repository.
 
 ## License
 
 `daxle` is released under the MIT License. See the [LICENSE](LICENSE) for more information.
-
